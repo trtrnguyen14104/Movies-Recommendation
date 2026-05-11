@@ -23,14 +23,10 @@ export const getAISummary = (movieId) => api.get(`/ai/summary/${movieId}`)
 export const getReviews = (movieId, page = 1) => api.get(`/ai/reviews/${movieId}?page=${page}`)
 export const reindexMovie = (movieId) => api.post(`/ai/reindex/${movieId}`)
 
-// Personalized Recommendations
-export const getPersonalizedRecommendations = (limit = 10) =>
-  api.get(`/recommendations/for-you?limit=${limit}`)
-export const recordInteraction = (movieId, action = 'view') =>
-  api.post(`/recommendations/interact?movie_id=${movieId}&action=${action}`)
-export const getSimilarMovies = (movieId, limit = 8) =>
-  api.get(`/recommendations/similar/${movieId}?limit=${limit}`)
-export const getUserHistory = () => api.get('/recommendations/history')
-export const clearUserHistory = () => api.delete('/recommendations/history')
+// Recommendations
+// genre_scores: chuoi diem genre vd "28:6,12:3,878:2"
+// exclude_ids : chuoi movie_id can loai tru vd "272,1726"
+export const getRecommendations = (genreScores, excludeIds = '', limit = 12) =>
+  api.get(`/recommendations/goi-y?genre_scores=${genreScores}&exclude_ids=${excludeIds}&limit=${limit}`)
 
 export default api

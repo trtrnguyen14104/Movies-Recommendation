@@ -3,7 +3,7 @@ import { Pagination } from 'antd'
 import HeroBanner from '../components/HeroBanner'
 import MovieSection from '../components/MovieSection'
 import MovieGrid from '../components/MovieGrid'
-import PersonalizedSection from '../components/PersonalizedSection'
+import RecommendationSection from '../components/RecommendationSection'
 import { getTrendingMovies, getPopularMovies, getTopRatedMovies, getNowPlaying } from '../services/api'
 
 export default function HomePage() {
@@ -52,8 +52,8 @@ export default function HomePage() {
       {/* Sections */}
       <div className="px-6 md:px-12 max-w-[1440px] mx-auto">
 
-        {/* AI Personalized Recommendations */}
-        <PersonalizedSection />
+        {/* Goi y ca nhan hoa: chi hien khi user da xem/thich phim nao do */}
+        <RecommendationSection />
 
         <MovieSection
           title="Đang Chiếu"
