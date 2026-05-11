@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Tag, Rate, Spin, message as antMessage } from 'antd'
-import { getMovieDetail, recordInteraction } from '../services/api'
+import { Tag, Rate, Spin } from 'antd'
+import { getMovieDetail } from '../services/api'
+import { recordInteraction } from '../services/interactions'
 import AIReviewSummary from '../components/AIReviewSummary'
 import ReviewsList from '../components/ReviewsList'
 import MovieCard from '../components/MovieCard'
+import LikeButton from '../components/LikeButton'
 
 const PLACEHOLDER_BACK = 'https://via.placeholder.com/1280x720/1e2020/5e3f3b?text=No+Image'
 
@@ -44,12 +46,9 @@ export default function MoviePage() {
   const [trailerKey, setTrailerKey] = useState(null)
   const [showTrailer, setShowTrailer] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
-  const [likeStatus, setLikeStatus] = useState(null) // 'like' | 'dislike' | null
-
   useEffect(() => {
     setLoading(true)
     setMovie(null)
-    setLikeStatus(null)
     window.scrollTo(0, 0)
     getMovieDetail(id)
       .then((r) => {
@@ -59,29 +58,12 @@ export default function MoviePage() {
           (v) => v.type === 'Trailer' && v.site === 'YouTube'
         ) || videos.find((v) => v.site === 'YouTube')
         if (trailer) setTrailerKey(trailer.key)
-        // Auto-record view interaction for AI personalization
-        recordInteraction(parseInt(id), 'view').catch(() => {})
+
+        // Ghi nhan user da bam vao xem chi tiet phim nay (+1 diem)
+        recordInteraction(r.data, 'view')
       })
       .finally(() => setLoading(false))
   }, [id])
-
-  const handleLike = async (action) => {
-    if (likeStatus === action) {
-      setLikeStatus(null)
-      return
-    }
-    setLikeStatus(action)
-    try {
-      await recordInteraction(parseInt(id), action)
-      antMessage.success(
-        action === 'like'
-          ? '❤️ Đã thêm vào danh sách yêu thích!'
-          : '👎 Đã ghi nhận phản hồi của bạn'
-      )
-    } catch (e) {
-      // silent fail
-    }
-  }
 
   if (loading) {
     return (
@@ -213,7 +195,11 @@ export default function MoviePage() {
               <div className="flex gap-3 flex-wrap">
                 {trailerKey && (
                   <button
-                    onClick={() => setShowTrailer(true)}
+                    onClick={() => {
+                      setShowTrailer(true)
+                      // Ghi nhan user da xem trailer phim nay (+2 diem)
+                      recordInteraction(movie, 'trailer')
+                    }}
                     className="flex items-center gap-2 px-6 py-3 bg-primary-container text-white font-bold rounded-xl hover:bg-red-700 transition-all duration-200 active:scale-95"
                   >
                     <span className="material-symbols-outlined text-lg">play_arrow</span>
@@ -228,39 +214,10 @@ export default function MoviePage() {
                   AI Phân Tích
                 </button>
 
-                {/* Like/Dislike for personalization */}
-                <div className="flex items-center gap-2 ml-1">
-                  <button
-                    onClick={() => handleLike('like')}
-                    className={`flex items-center gap-1.5 px-4 py-3 rounded-xl border transition-all duration-200 active:scale-95 text-sm font-semibold ${
-                      likeStatus === 'like'
-                        ? 'bg-green-500/20 border-green-500/50 text-green-400'
-                        : 'glass-panel border-white/10 text-on-surface-variant hover:border-green-500/40 hover:text-green-400'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-base">
-                      {likeStatus === 'like' ? 'favorite' : 'favorite_border'}
-                    </span>
-                    Yêu thích
-                  </button>
-                  <button
-                    onClick={() => handleLike('dislike')}
-                    className={`flex items-center gap-1.5 px-4 py-3 rounded-xl border transition-all duration-200 active:scale-95 text-sm font-semibold ${
-                      likeStatus === 'dislike'
-                        ? 'bg-red-500/10 border-red-500/30 text-red-400'
-                        : 'glass-panel border-white/10 text-on-surface-variant hover:border-red-500/30 hover:text-red-400'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-base">thumb_down</span>
-                  </button>
-                </div>
-              </div>
+                {/* Nut Yeu thich: bam de them vao danh sach thich (+3 diem) */}
+                <LikeButton movie={movie} />
 
-              {/* Personalization hint */}
-              <p className="text-xs text-on-surface-variant/50 mt-3 flex items-center gap-1">
-                <span className="material-symbols-outlined" style={{ fontSize: 12 }}>psychology</span>
-                AI đang ghi nhận sở thích của bạn để cải thiện gợi ý
-              </p>
+              </div>
             </div>
           </div>
 
