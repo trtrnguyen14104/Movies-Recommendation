@@ -1,0 +1,47 @@
+import { useState, useEffect } from 'react'
+import { Pagination } from 'antd'
+import MovieGrid from '../components/MovieGrid'
+import { getNowPlaying } from '../services/api'
+
+export default function NowPlayingPage() {
+  const [movies, setMovies] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+
+  useEffect(() => {
+    setLoading(true)
+    getNowPlaying(page)
+      .then((r) => {
+        setMovies(r.data.results || [])
+        setTotal(r.data.total_results || 0)
+      })
+      .finally(() => setLoading(false))
+  }, [page])
+
+  return (
+    <div className="min-h-screen pt-20 px-6 md:px-12 max-w-[1440px] mx-auto pb-12">
+      <div className="mb-8 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary-container/20 flex items-center justify-center">
+          <span className="material-symbols-outlined text-primary-container">theaters</span>
+        </div>
+        <div>
+          <h1 className="text-4xl font-black text-on-surface">Đang Chiếu</h1>
+          <p className="text-on-surface-variant text-sm">Currently in theaters</p>
+        </div>
+      </div>
+      <MovieGrid movies={movies} loading={loading} columns={5} />
+      {total > 20 && (
+        <div className="flex justify-center mt-8">
+          <Pagination
+            current={page}
+            total={Math.min(total, 10000)}
+            pageSize={20}
+            onChange={setPage}
+            showSizeChanger={false}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
